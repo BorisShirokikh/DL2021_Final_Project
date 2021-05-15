@@ -73,3 +73,31 @@ def extract_patch(inputs, x_patch_size, y_patch_size, spatial_dims=SPATIAL_DIMS)
     x_patch = crop_to_box(x, box=x_spatial_box, padding_values=np.min, axis=spatial_dims)
     y_patch = crop_to_box(y, box=y_spatial_box, padding_values=0, axis=spatial_dims)
     return x_patch, y_patch
+
+
+# augmentation:
+
+
+def flip_augm(inputs, p=0.3, dims=None):
+    if dims is None:
+        dims = SPATIAL_DIMS
+    outputs = inputs
+    for dim in dims:
+        if np.random.rand() < p:
+            outputs = (np.flip(x, axis=dim) for x in inputs)
+    return outputs
+
+
+def rot_augm(inputs, p=0.3, dims=None):
+    if dims is None:
+        dims = SPATIAL_DIMS
+    outputs = inputs
+    if np.random.rand() < p:
+        axes = tuple(np.random.permutation(dims)[:2])
+        k = np.random.randint(1, 4)
+        outputs = (np.rot90(x, k=k, axes=axes) for x in inputs)
+    return outputs
+
+
+def augm_spatial(inputs, dims_flip=None, dims_rot=None):
+    return rot_augm(flip_augm(inputs, dims=dims_flip), dims=dims_rot)
