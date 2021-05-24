@@ -15,5 +15,5 @@ CC359_BASELINE_PATH = choose_root(
 WMH_DATA_PATH = choose_root(
     '/nmnt/x3-hdd/data/da_mri/wmh_ants',
     '/gpfs/data/gpfs0/b.shirokikh/data/wmh_ants',
-    '/',  # TODO: avoiding `FileNotFoundError`
+    '/nmnt/media/home/anastasia_kurmukova/DL2021_Final_Project/wmh_ants',  # TODO: avoiding `FileNotFoundError`
 )
