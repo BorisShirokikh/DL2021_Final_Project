@@ -2,6 +2,8 @@ from torch import nn
 
 from dpipe.layers.resblock import ResBlock2d
 from dpipe.layers.conv import PreActivation2d
+from dpipe.layers.resblock import ResBlock3d
+from dpipe.layers.conv import PreActivation3d
 
 
 class UNet2D(nn.Module):
@@ -66,6 +68,79 @@ class UNet2D(nn.Module):
 
     def forward(self, x):
 
+        x0 = self.init_path(x)
+        x1 = self.down1(x0)
+        x2 = self.down2(x1)
+
+        x2_up = self.up2(self.bottleneck(x2) + self.shortcut2(x2))
+        x1_up = self.up1(x2_up + self.shortcut1(x1))
+        x_out = self.out_path(x1_up + self.shortcut0(x0))
+
+        return x_out
+
+
+class UNet3D(nn.Module):
+    def __init__(self, n_chans_in, n_chans_out, n_filters_init=8):
+        super().__init__()
+        self.n_filters_init = n_filters_init
+        n = n_filters_init
+
+        self.init_path = nn.Sequential(
+            nn.Conv3d(n_chans_in, n, kernel_size=3, padding=1, bias=False),
+            ResBlock3d(n, n, kernel_size=3, padding=1),
+            ResBlock3d(n, n, kernel_size=3, padding=1),
+            ResBlock3d(n, n, kernel_size=3, padding=1),
+        )
+        self.shortcut0 = nn.Conv3d(n, n, kernel_size=1, padding=0)
+
+        self.down1 = nn.Sequential(
+            PreActivation3d(n, n * 2, kernel_size=2, stride=2, bias=False),
+            ResBlock3d(n * 2, n * 2, kernel_size=3, padding=1),
+            ResBlock3d(n * 2, n * 2, kernel_size=3, padding=1),
+            ResBlock3d(n * 2, n * 2, kernel_size=3, padding=1)
+        )
+        self.shortcut1 = nn.Conv3d(n * 2, n * 2, kernel_size=1, padding=0)
+
+        self.down2 = nn.Sequential(
+            PreActivation3d(n * 2, n * 4, kernel_size=2, stride=2, bias=False),
+            ResBlock3d(n * 4, n * 4, kernel_size=3, padding=1),
+            ResBlock3d(n * 4, n * 4, kernel_size=3, padding=1),
+            ResBlock3d(n * 4, n * 4, kernel_size=3, padding=1)
+        )
+        self.shortcut2 = nn.Conv3d(n * 4, n * 4, kernel_size=1, padding=0)
+
+        self.bottleneck = nn.Sequential(
+            PreActivation3d(n * 4, n * 8, kernel_size=2, stride=2, bias=False),
+            ResBlock3d(n * 8, n * 8, kernel_size=3, padding=1),
+            ResBlock3d(n * 8, n * 8, kernel_size=3, padding=1),
+            ResBlock3d(n * 8, n * 8, kernel_size=3, padding=1),
+            nn.ConvTranspose3d(n * 8, n * 4, kernel_size=2, stride=2, bias=False),
+        )
+
+        self.up2 = nn.Sequential(
+            ResBlock3d(n * 4, n * 4, kernel_size=3, padding=1),
+            ResBlock3d(n * 4, n * 4, kernel_size=3, padding=1),
+            ResBlock3d(n * 4, n * 4, kernel_size=3, padding=1),
+            nn.ConvTranspose3d(n * 4, n * 2, kernel_size=2, stride=2, bias=False),
+        )
+
+        self.up1 = nn.Sequential(
+            ResBlock3d(n * 2, n * 2, kernel_size=3, padding=1),
+            ResBlock3d(n * 2, n * 2, kernel_size=3, padding=1),
+            ResBlock3d(n * 2, n * 2, kernel_size=3, padding=1),
+            nn.ConvTranspose3d(n * 2, n, kernel_size=2, stride=2, bias=False),
+        )
+
+        self.out_path = nn.Sequential(
+            ResBlock3d(n, n, kernel_size=3, padding=1),
+            ResBlock3d(n, n, kernel_size=3, padding=1),
+            ResBlock3d(n, n, kernel_size=3, padding=1),
+            PreActivation3d(n, n_chans_out, kernel_size=1),
+            nn.BatchNorm3d(n_chans_out)
+        )
+
+    def forward(self, x):
+        #print(x.shape)
         x0 = self.init_path(x)
         x1 = self.down1(x0)
         x2 = self.down2(x1)
