@@ -1,21 +1,18 @@
 import os
 import random
 from pathlib import Path
+from typing import Iterable, Union, Callable
+from functools import wraps
 
 import numpy as np
 import torch
 import surface_distance.metrics as surf_dc
 
 from dpipe.io import PathLike
-from dpipe.im.axes import broadcast_to_axis, AxesLike, AxesParams, axis_from_dim, resolve_deprecation
-from dpipe.im.grid import crop_to_box, combine,get_boxes
+from dpipe.im.axes import broadcast_to_axis, AxesLike, AxesParams, resolve_deprecation
+from dpipe.im.grid import crop_to_box, combine, get_boxes
 from dpipe.itertools import extract, pmap
-from dpipe.im.shape_ops import pad_to_shape, crop_to_shape, pad_to_divisible
-from dpipe.im.shape_utils import prepend_dims, extract_dims
-from dpipe.im.shape_ops import pad
-from typing import Iterable, Union, Callable
-
-from functools import wraps
+from dpipe.im.shape_ops import pad_to_shape, crop_to_shape, pad
 
 
 def get_pred(x, threshold=0.5):
@@ -47,8 +44,9 @@ def skip_predict(output_path):
     print(f'>>> Passing the step of saving predictions into `{output_path}`', flush=True)
     os.makedirs(output_path)
 
+
 def divide_grid(x: np.ndarray, max_axes: np.ndarray, patch_size: AxesLike, stride: AxesLike, axis: AxesLike = None,
-           valid: bool = False) -> Iterable[np.ndarray]:
+                valid: bool = False) -> Iterable[np.ndarray]:
     """
     A convolution-like approach to generating patches from a tensor.
     Parameters
@@ -84,8 +82,9 @@ def divide_grid(x: np.ndarray, max_axes: np.ndarray, patch_size: AxesLike, strid
         # print("ANS ", ans.shape)
         yield ans
 
+
 def patches_grid_dm(patch_size: AxesLike, stride: AxesLike, axis: AxesLike = None,
-                 padding_values: Union[AxesParams, Callable] = 0, ratio: AxesParams = 0.5):
+                    padding_values: Union[AxesParams, Callable] = 0, ratio: AxesParams = 0.5):
     """
     Divide an incoming array into patches of corresponding ``patch_size`` and ``stride`` and then combine
     predicted patches by averaging the overlapping regions.
@@ -119,4 +118,3 @@ def patches_grid_dm(patch_size: AxesLike, stride: AxesLike, axis: AxesLike = Non
         return wrapper
 
     return decorator
-

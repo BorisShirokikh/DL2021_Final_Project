@@ -48,9 +48,9 @@ def one2one(df, val_size=2, n_add_ids=5, train_on_add_only=False, seed=0xBadCafe
                          [deepcopy(ids_train) + ids_train_add, random.sample(ids_test, val_size), ids_test])
     return split
 
-def stratified(df, val_size=2, n_splits=3, seed=0xBadCafe):
-    """All domains split in stratified k folds"""
-    train_val_test_ids = stratified_train_val_test_split(df.index.tolist(), df.fold.tolist(),\
-                                                         val_size=val_size, n_splits=n_splits,\
-                                                         random_state=seed)
+
+def strat_cv_debug(df, n_splits=3, seed=0xBadCafe):
+    train_val_test_ids = stratified_train_val_test_split(df.index.tolist(), df.fold.tolist(),
+                                                         val_size=0, n_splits=n_splits, random_state=seed)
+    train_val_test_ids = [[e[0], e[2], e[2]] for e in train_val_test_ids]
     return train_val_test_ids
