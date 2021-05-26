@@ -1,7 +1,7 @@
 import random
 from copy import deepcopy
 
-from dpipe.split import train_val_test_split, train_test_split
+from dpipe.split import train_val_test_split, train_test_split, stratified_train_val_test_split
 
 
 def one2all(df, val_size=2, seed=0xBadCafe):
