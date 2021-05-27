@@ -83,6 +83,28 @@ def divide_grid(x: np.ndarray, max_axes: np.ndarray, patch_size: AxesLike, strid
         yield ans
 
 
+def divide(x: np.ndarray, patch_size: AxesLike, stride: AxesLike, axis: AxesLike = None,
+           valid: bool = False) -> Iterable[np.ndarray]:
+    """
+    A convolution-like approach to generating patches from a tensor.
+    Parameters
+    ----------
+    x
+    patch_size
+    axis
+        dimensions along which the slices will be taken.
+    stride
+        the stride (step-size) of the slice.
+    valid
+        whether patches of size smaller than ``patch_size`` should be left out.
+    References
+    ----------
+    See the :doc:`tutorials/patches` tutorial for more details.
+    """
+    for box in get_boxes(x.shape, patch_size, stride, axis, valid=valid):
+        yield crop_to_box(x, box)
+
+
 def patches_grid_dm(patch_size: AxesLike, stride: AxesLike, axis: AxesLike = None,
                     padding_values: Union[AxesParams, Callable] = 0, ratio: AxesParams = 0.5):
     """
@@ -109,9 +131,11 @@ def patches_grid_dm(patch_size: AxesLike, stride: AxesLike, axis: AxesLike = Non
                 x = pad_to_shape(x, new_shape, input_axis, padding_values, ratio)
 
             patches = pmap(predict, divide_grid(x, new_shape, local_size, local_stride, input_axis), *args, **kwargs)
+            # patches = pmap(predict, divide(x, local_size, local_stride, input_axis), *args, **kwargs)
             prediction = combine(patches, extract(x.shape, input_axis), local_stride, axis)
 
             if valid:
+                # print(prediction.shape, shape)
                 prediction = crop_to_shape(prediction, shape, axis, ratio)
             return prediction
 
