@@ -59,9 +59,7 @@ def one2one(df, val_size=2, n_add_ids=5, train_on_add_only=False, seed=0xBadCafe
     split = []
     for fb in folds:
         folds_o = set(folds) - {fb}
-        ids_train, ids_val = train_test_split(df[df.fold == fb].index.tolist(), test_size=val_size, random_state=seed)
-        if train_on_add_only:
-            ids_train = []
+        ids_train = [] if train_on_add_only else df[df.fold == fb].index.tolist()
 
         for fo in folds_o:
             ids_test, ids_train_add = train_test_split(df[df.fold == fo].index.tolist(), test_size=n_add_ids,
