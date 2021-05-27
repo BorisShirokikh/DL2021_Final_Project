@@ -11,7 +11,7 @@ def one2all(df, val_size=2, seed=0xBadCafe):
     for f in folds:
         idx_b = df[df.fold == f].index.tolist()
         test_ids = df[df.fold != f].index.tolist()
-        train_ids, val_ids = train_test_split(idx_b, test_size=val_size, random_state=seed)
+        train_ids, val_ids = train_test_split(idx_b, test_size=val_size, random_state=seed) if val_size > 0 else (idx_b, [])
         split.append([train_ids, val_ids, test_ids])
     return split
 
