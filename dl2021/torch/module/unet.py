@@ -87,21 +87,18 @@ class UNet3D(nn.Module):
 
         self.init_path = nn.Sequential(
             nn.Conv3d(n_chans_in, n, kernel_size=3, padding=1, bias=False),
-            ResBlock3d(n, n, kernel_size=3, padding=1),
-            ResBlock3d(n, n, kernel_size=3, padding=1),
+            ResBlock3d(n, n, kernel_size=3, padding=1)
         )
         self.shortcut0 = nn.Conv3d(n, n, kernel_size=1, padding=0)
 
         self.down1 = nn.Sequential(
             PreActivation3d(n, n * 2, kernel_size=2, stride=2, bias=False),
-            ResBlock3d(n * 2, n * 2, kernel_size=3, padding=1),
             ResBlock3d(n * 2, n * 2, kernel_size=3, padding=1)
         )
         self.shortcut1 = nn.Conv3d(n * 2, n * 2, kernel_size=1, padding=0)
 
         self.down2 = nn.Sequential(
             PreActivation3d(n * 2, n * 4, kernel_size=2, stride=2, bias=False),
-            ResBlock3d(n * 4, n * 4, kernel_size=3, padding=1),
             ResBlock3d(n * 4, n * 4, kernel_size=3, padding=1)
         )
         self.shortcut2 = nn.Conv3d(n * 4, n * 4, kernel_size=1, padding=0)
@@ -109,24 +106,20 @@ class UNet3D(nn.Module):
         self.bottleneck = nn.Sequential(
             PreActivation3d(n * 4, n * 8, kernel_size=2, stride=2, bias=False),
             ResBlock3d(n * 8, n * 8, kernel_size=3, padding=1),
-            ResBlock3d(n * 8, n * 8, kernel_size=3, padding=1),
             nn.ConvTranspose3d(n * 8, n * 4, kernel_size=2, stride=2, bias=False),
         )
 
         self.up2 = nn.Sequential(
-            ResBlock3d(n * 4, n * 4, kernel_size=3, padding=1),
             ResBlock3d(n * 4, n * 4, kernel_size=3, padding=1),
             nn.ConvTranspose3d(n * 4, n * 2, kernel_size=2, stride=2, bias=False),
         )
 
         self.up1 = nn.Sequential(
             ResBlock3d(n * 2, n * 2, kernel_size=3, padding=1),
-            ResBlock3d(n * 2, n * 2, kernel_size=3, padding=1),
             nn.ConvTranspose3d(n * 2, n, kernel_size=2, stride=2, bias=False),
         )
 
         self.out_path = nn.Sequential(
-            ResBlock3d(n, n, kernel_size=3, padding=1),
             ResBlock3d(n, n, kernel_size=3, padding=1),
             PreActivation3d(n, n_chans_out, kernel_size=1),
             nn.BatchNorm3d(n_chans_out)
